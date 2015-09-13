@@ -1,0 +1,22 @@
+{
+    "name": "alexinator1/yii2-jta",
+    "description": "Yii2 extension allows to access attributes of junction table and attach them as child model as properties in many-to-many relation",
+    "keywords": ["yii2", "ActiveRecord", "Junction table", "Pivot table", "Junction Attributes", "Many-to-Many"],
+    "type": "yii2-extension",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/alexinator1/yii2-jta/issues"
+    },
+    "authors": [
+        {
+            "name": "Aleksey Rudakov",
+            "email": "rudakovalal@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": ">=2.0.4"
+    },
+    "autoload": {
+        "psr-4": { "alexinator1\\jta\\": "src" }
+    }
+}
