@@ -34,6 +34,11 @@ to the `require` section of your `composer.json` file.
 
 Just inherit your both model classes related in many-to-many relation from alexinator1\jta\ActiveRecord class.
 
+Consider following scheme
+
+![Database scheme for example](https://cloud.githubusercontent.com/assets/1975274/9838575/e1125228-5a69-11e5-8eac-a99f671e29fe.png)
+
+
 
 ```php
 class User extends \alexinator1\jta\ActiveRecord
