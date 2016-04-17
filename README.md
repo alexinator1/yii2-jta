@@ -49,7 +49,7 @@ class User extends \alexinator1\jta\ActiveRecord
 
 
 ```php
-class Team extends \alexinator1\jta\ActiveRecord
+class Group extends \alexinator1\jta\ActiveRecord
 {
     ....
 }
@@ -59,25 +59,27 @@ and pass array of attribute names you want to attach to child model to viaTable 
 
 
 ```php
-class Team extends ActiveRecord
+class Group extends \alexinator1\jta\ActiveRecord
 {
     ...
     
-    public function getMembers()
+    public function getUsers()
     {
         return $this->hasMany(User::className(), ['id' => 'user_id'])
-            ->viaTable('user_team', ['team_id' => 'id'], null, ['role', 'joined_at']);
+            ->viaTable('user_group', ['group_id' => 'id'], null, ['role', 'joined_at']);
     }
 
     ...
 }
 ```
 
-That's it. Now you can access these fields as usual properties
+That's it. Now you can access these fields as usual properties.
+
+Lazy loading:
 
 ```php
-    $team = Team::findOne($teamId);
-    foreach($team->members as $user)
+    $group = Group::findOne($groupId);
+    foreach($group->users as $user)
     {
         $role = $user->role;
         $joinDate = $user->joined_at;
@@ -89,14 +91,29 @@ works with 'array' models as well:
 
 
 ```php
-    $team = Team::find()->where($teamId)->asArray()->one();
-    foreach($team->members as $user)
+    $group = Group::find()->where($groupId)->asArray()->one();
+    foreach($group->users as $user)
     {
         $role = $user['role'];
         $joinDate = $user['joined_at'];
         ...
     }
 ```
+
+
+Eager loading:
+
+```php
+    $group = Group::find()->where($groupId)->with('users');
+    foreach($group->users as $user)
+    {
+        $role = $user->role;
+        $joinDate = $user->joined_at;
+        ...
+    }
+```
+
+
 
 #### Note!
 ```
@@ -107,6 +124,13 @@ and are overwritten by declared properties.
 ```
 
 
+
+## Failed use cases 
+
+If you find any usecases where extension doesn't  work properly. Please feel free to issue it or send me to email.
+We will try to handle it ASAP.
+
+
 ## License
 
 **yii2 junction table attributes ** is released under the MIT License. See the bundled `LICENSE.md` for details.
@@ -115,3 +139,4 @@ and are overwritten by declared properties.
 ## Resources
 
 - [Source Code](https://github.com/alexinator1/yii2-jta)
+

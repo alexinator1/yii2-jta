@@ -3,7 +3,6 @@ namespace alexinator1\jta;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
-use yii\base\InvalidParamException;
 use yii\db\ActiveRecordInterface;
 
 /**
