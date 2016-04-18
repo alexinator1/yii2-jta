@@ -107,7 +107,7 @@ class ActiveQuery extends \yii\db\ActiveQuery
     public function populate($rows)
     {
         $models = parent::populate($rows);
-        if(!empty($this->link) && !empty($this->via)){
+        if(!empty($this->link) && !empty($this->via) && ($this->via instanceof self)){
             $this->populateJunctionAttributes($models);
         }
         return $models;
@@ -121,11 +121,13 @@ class ActiveQuery extends \yii\db\ActiveQuery
 
         $pivotAttributes = $this->via->pivotAttributes;
 
-        foreach($models as $model){
-            foreach($this->_viaModels as $viaModel){
+        if(!empty($pivotAttributes)){
+            foreach($models as $model){
+                foreach($this->_viaModels as $viaModel){
 
-                if($this->isViaModelRelated($model, $viaModel, $modelKey, $viaModelKey)){
-                    $this->populatePivotAttributes($model, $viaModel, $pivotAttributes);
+                    if($this->isViaModelRelated($model, $viaModel, $modelKey, $viaModelKey)){
+                        $this->populatePivotAttributes($model, $viaModel, $pivotAttributes);
+                    }
                 }
             }
         }
