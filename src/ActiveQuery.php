@@ -92,7 +92,7 @@ class ActiveQuery extends \yii\db\ActiveQuery
             }
 
 
-            $this->_viaModels = $viaModels ?: [];
+            $this->_viaModels = !empty($viaModels) ? $viaModels : [];
             $query = Query::create($this);
             $this->where = $where;
         }
