@@ -87,24 +87,10 @@ Lazy loading:
     }
 ```
 
-works with 'array' models as well:
-
-
-```php
-    $group = Group::find()->where($groupId)->asArray()->one();
-    foreach($group->users as $user)
-    {
-        $role = $user['role'];
-        $joinDate = $user['joined_at'];
-        ...
-    }
-```
-
-
 Eager loading:
 
 ```php
-    $group = Group::find()->where($groupId)->with('users');
+    $group = Group::find()->where($groupId)->with('users')->all();
     foreach($group->users as $user)
     {
         $role = $user->role;
@@ -112,6 +98,24 @@ Eager loading:
         ...
     }
 ```
+
+works with 'array' models as well:
+
+
+```php
+    $group = Group::find()
+        ->with('users')
+        ->where($groupId)
+        ->asArray()
+        ->one();
+    foreach($group['users'] as $user)
+    {
+        $role = $user['role'];
+        $joinDate = $user['joined_at'];
+        ...
+    }
+```
+
 
 
 
