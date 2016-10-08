@@ -140,4 +140,176 @@ class ActiveQuery extends \yii\db\ActiveQuery
         return $modelPkValue == $viaModel[$viaModelKey];
     }
 
+
+    /**
+     * Modifies the current query by adding join fragments based on the given relations.
+     * @param ActiveRecord $model the primary model
+     * @param array $with the relations to be joined
+     * @param string|array $joinType the join type
+     */
+    private function joinWithRelations($model, $with, $joinType)
+    {
+        $relations = [];
+
+        foreach ($with as $name => $callback) {
+            if (is_int($name)) {
+                $name = $callback;
+                $callback = null;
+            }
+
+            $primaryModel = $model;
+            $parent = $this;
+            $prefix = '';
+            while (($pos = strpos($name, '.')) !== false) {
+                $childName = substr($name, $pos + 1);
+                $name = substr($name, 0, $pos);
+                $fullName = $prefix === '' ? $name : "$prefix.$name";
+                if (!isset($relations[$fullName])) {
+                    $relations[$fullName] = $relation = $primaryModel->getRelation($name);
+                    $this->joinWithRelation($parent, $relation, $this->getJoinType($joinType, $fullName));
+                } else {
+                    $relation = $relations[$fullName];
+                }
+                $primaryModel = new $relation->modelClass;
+                $parent = $relation;
+                $prefix = $fullName;
+                $name = $childName;
+            }
+
+            $fullName = $prefix === '' ? $name : "$prefix.$name";
+            if (!isset($relations[$fullName])) {
+                $relations[$fullName] = $relation = $primaryModel->getRelation($name);
+                if ($callback !== null) {
+                    call_user_func($callback, $relation);
+                }
+                if (!empty($relation->joinWith)) {
+                    $relation->buildJoinWith();
+                }
+                $this->joinWithRelation($parent, $relation, $this->getJoinType($joinType, $fullName));
+            }
+        }
+    }
+
+    /**
+     * Returns the join type based on the given join type parameter and the relation name.
+     * @param string|array $joinType the given join type(s)
+     * @param string $name relation name
+     * @return string the real join type
+     */
+    private function getJoinType($joinType, $name)
+    {
+        if (is_array($joinType) && isset($joinType[$name])) {
+            return $joinType[$name];
+        } else {
+            return is_string($joinType) ? $joinType : 'INNER JOIN';
+        }
+    }
+
+    /**
+     * Returns the table name and the table alias for [[modelClass]].
+     * @param ActiveQuery $query
+     * @return array the table name and the table alias.
+     */
+    private function getQueryTableName($query)
+    {
+        if (empty($query->from)) {
+            /* @var $modelClass ActiveRecord */
+            $modelClass = $query->modelClass;
+            $tableName = $modelClass::tableName();
+        } else {
+            $tableName = '';
+            foreach ($query->from as $alias => $tableName) {
+                if (is_string($alias)) {
+                    return [$tableName, $alias];
+                } else {
+                    break;
+                }
+            }
+        }
+
+        if (preg_match('/^(.*?)\s+({{\w+}}|\w+)$/', $tableName, $matches)) {
+            $alias = $matches[2];
+        } else {
+            $alias = $tableName;
+        }
+
+        return [$tableName, $alias];
+    }
+
+    /**
+     * Joins a parent query with a child query.
+     * The current query object will be modified accordingly.
+     * @param ActiveQuery $parent
+     * @param ActiveQuery $child
+     * @param string $joinType
+     */
+    private function joinWithRelation($parent, $child, $joinType)
+    {
+        $via = $child->via;
+        $child->via = null;
+        if ($via instanceof ActiveQuery) {
+            // via table
+            $this->joinWithRelation($parent, $via, $joinType);
+            $this->joinWithRelation($via, $child, $joinType);
+            return;
+        } elseif (is_array($via)) {
+            // via relation
+            $this->joinWithRelation($parent, $via[1], $joinType);
+            $this->joinWithRelation($via[1], $child, $joinType);
+            return;
+        }
+
+        list ($parentTable, $parentAlias) = $this->getQueryTableName($parent);
+        list ($childTable, $childAlias) = $this->getQueryTableName($child);
+
+        if (!empty($child->link)) {
+
+            if (strpos($parentAlias, '{{') === false) {
+                $parentAlias = '{{' . $parentAlias . '}}';
+            }
+            if (strpos($childAlias, '{{') === false) {
+                $childAlias = '{{' . $childAlias . '}}';
+            }
+
+            $on = [];
+            foreach ($child->link as $childColumn => $parentColumn) {
+                $on[] = "$parentAlias.[[$parentColumn]] = $childAlias.[[$childColumn]]";
+            }
+            $on = implode(' AND ', $on);
+            if (!empty($child->on)) {
+                $on = ['and', $on, $child->on];
+            }
+        } else {
+            $on = $child->on;
+        }
+        $this->join($joinType, empty($child->from) ? $childTable : $child->from, $on);
+
+        if (!empty($child->where)) {
+            $this->andWhere($child->where);
+        }
+        if (!empty($child->having)) {
+            $this->andHaving($child->having);
+        }
+        if (!empty($child->orderBy)) {
+            $this->addOrderBy($child->orderBy);
+        }
+        if (!empty($child->groupBy)) {
+            $this->addGroupBy($child->groupBy);
+        }
+        if (!empty($child->params)) {
+            $this->addParams($child->params);
+        }
+        if (!empty($child->join)) {
+            foreach ($child->join as $join) {
+                $this->join[] = $join;
+            }
+        }
+        if (!empty($child->union)) {
+            foreach ($child->union as $union) {
+                $this->union[] = $union;
+            }
+        }
+    }
+
+
 }

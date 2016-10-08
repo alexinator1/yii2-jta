@@ -47,6 +47,9 @@ trait JuncActiveRelationTrait
             $this->filterByModels($primaryModels);
         }
 
+
+        $this->_viaModels = $viaModels;
+
         if (!$this->multiple && count($primaryModels) === 1) {
             $model = $this->one();
             foreach ($primaryModels as $i => $primaryModel) {
