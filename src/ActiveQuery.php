@@ -137,7 +137,49 @@ class ActiveQuery extends \yii\db\ActiveQuery
     private function isViaModelRelated($model, $viaModel, $modelKey, $viaModelKey)
     {
         $modelPkValue = is_array($model) ? $model[$modelKey] : $model->{$modelKey};
-        return $modelPkValue == $viaModel[$viaModelKey];
+        return $modelPkValue == $viaModel[$viaModelKey];K
+    }
+
+
+    private function buildJoinWith()
+    {
+        $join = $this->join;
+        $this->join = [];
+
+        foreach ($this->joinWith as $config) {
+            list ($with, $eagerLoading, $joinType) = $config;
+            $this->joinWithRelations(new $this->modelClass, $with, $joinType);
+K
+            if (is_array($eagerLoading)) {
+                foreach ($with as $name => $callback) {
+                    if (is_int($name)) {
+                        if (!in_array($callback, $eagerLoading, true)) {
+                            unset($with[$name]);
+                        }
+                    } elseif (!in_array($name, $eagerLoading, true)) {
+                        unset($with[$name]);
+                    }
+                }
+            } elseif (!$eagerLoading) {
+                $with = [];
+            }
+
+            $this->with($with);
+        }
+
+        // remove duplicated joins added by joinWithRelations that may be added
+        // e.g. when joining a relation and a via relation at the same time
+        $uniqueJoins = [];
+        foreach ($this->join as $j) {
+            $uniqueJoins[serialize($j)] = $j;
+        }
+        $this->join = array_values($uniqueJoins);
+
+        if (!empty($join)) {
+            // append explicit join to joinWith()
+            // https://github.com/yiisoft/yii2/issues/2880
+            $this->join = empty($this->join) ? $join : array_merge($this->join, $join);
+        }
     }
 
 
