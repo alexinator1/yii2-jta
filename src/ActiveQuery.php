@@ -137,7 +137,7 @@ class ActiveQuery extends \yii\db\ActiveQuery
     private function isViaModelRelated($model, $viaModel, $modelKey, $viaModelKey)
     {
         $modelPkValue = is_array($model) ? $model[$modelKey] : $model->{$modelKey};
-        return $modelPkValue == $viaModel[$viaModelKey];K
+        return $modelPkValue == $viaModel[$viaModelKey];
     }
 
 
@@ -149,7 +149,7 @@ class ActiveQuery extends \yii\db\ActiveQuery
         foreach ($this->joinWith as $config) {
             list ($with, $eagerLoading, $joinType) = $config;
             $this->joinWithRelations(new $this->modelClass, $with, $joinType);
-K
+
             if (is_array($eagerLoading)) {
                 foreach ($with as $name => $callback) {
                     if (is_int($name)) {
