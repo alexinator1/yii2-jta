@@ -107,10 +107,22 @@ class ActiveQuery extends \yii\db\ActiveQuery
     public function populate($rows)
     {
         $models = parent::populate($rows);
-        if(!empty($this->link) && !empty($this->via) && ($this->via instanceof self)){
+
+        if( $this->isLazyLoadViaQuery()) {
             $this->populateJunctionAttributes($models);
         }
         return $models;
+    }
+
+    protected function isLazyLoadViaQuery()
+    {
+        return !empty($this->link)
+        && $this->primaryModel !== null
+        && !empty($this->via)
+        && ($this->via instanceof self)
+        && empty($this->with)
+        && empty($this->joinWith)
+        && !empty($this->via->pivotAttributes);
     }
 
 
@@ -125,8 +137,11 @@ class ActiveQuery extends \yii\db\ActiveQuery
             foreach($models as $model){
                 foreach($this->_viaModels as $viaModel){
 
+                    $indexedViaModels = [];
+                    $pkValue = $this->primaryModel->getPrimaryKey();
                     if($this->isViaModelRelated($model, $viaModel, $modelKey, $viaModelKey)){
-                        $this->populatePivotAttributes($model, $viaModel, $pivotAttributes);
+                        $indexedViaModels[$pkValue] = $viaModel;
+                        $this->populatePivotAttributes($model, $indexedViaModels, $pivotAttributes);
                     }
                 }
             }

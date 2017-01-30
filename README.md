@@ -73,7 +73,8 @@ class Group extends \alexinator1\jta\ActiveRecord
 }
 ```
 
-That's it. Now you can access these fields as usual properties.
+That's it. Now child model has a property which named as pivot attribute and contains array of corresponding values **indexed by parent id**.
+So it can't be accessed following way:
 
 Lazy loading:
 
@@ -81,8 +82,8 @@ Lazy loading:
     $group = Group::findOne($groupId);
     foreach($group->users as $user)
     {
-        $role = $user->role;
-        $joinDate = $user->joined_at;
+        $role = $user->role[$group->id];
+        $joinDate = $user->joined_at[$group->id];
         ...
     }
 ```
@@ -93,14 +94,29 @@ Eager loading:
     $group = Group::find()->where($groupId)->with('users')->all();
     foreach($group->users as $user)
     {
-        $role = $user->role;
-        $joinDate = $user->joined_at;
+        $role = $user->role[$group->id];
+        $joinDate = $user->joined_at[$group->id];
         ...
     }
 ```
 
-works with 'array' models as well:
 
+Eager loading using 'joinWith' methods:
+
+```php
+    $groups =  Group::find()->joinWith('users')->all();
+
+    foreach($groups as $group){
+        foreach($group->users as $user)
+        {
+            $role = $user->role[$group->id];
+            ...
+        }
+    }
+```
+
+
+works with 'array' models as well:
 
 ```php
     $group = Group::find()

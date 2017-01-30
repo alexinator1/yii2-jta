@@ -48,7 +48,6 @@ trait JuncActiveRelationTrait
         }
 
 
-        $this->_viaModels = $viaModels;
 
         if (!$this->multiple && count($primaryModels) === 1) {
             $model = $this->one();
@@ -195,7 +194,7 @@ trait JuncActiveRelationTrait
                 $key2 = $this->getModelKey($viaModel, $linkValues);
 
                 if(!empty($pivotAttributes)){
-                    $viaModelsIndexed[$key2] = $viaModel;
+                    $viaModelsIndexed[$key2][$key1] = $viaModel;
                 }
                 $map[$key2][$key1] = true;
             }
@@ -205,12 +204,14 @@ trait JuncActiveRelationTrait
         $linkKeys = array_keys($link);
 
         if (isset($map)) {
-            foreach ($models as $model) {
+            foreach ($models as &$model) {
                 $key = $this->getModelKey($model, $linkKeys);
-                if(!empty($pivotAttributes)){
-                    $this->populatePivotAttributes($model, $viaModelsIndexed[$key], $pivotAttributes);
-                }
-                if (isset($map[$key])) {
+                if (isset($map[$key]))
+                {
+                    if(!empty($pivotAttributes)){
+                        $this->populatePivotAttributes($model, $viaModelsIndexed[$key], $pivotAttributes);
+                    }
+
                     foreach (array_keys($map[$key]) as $key2) {
                         $buckets[$key2][] = $model;
                     }
@@ -371,26 +372,30 @@ trait JuncActiveRelationTrait
 
 
     /**
-     * @param array $viaModel
+     * @param array|ActiveRecord $model model to attach attributes for
+     * @param array $viaModels
      * @param array $attributes array of attribute names to be attached
      * @throws Exception
      * @throws Exception
      */
 
-    private function populatePivotAttributes(&$model, $viaModel, $attributes)
+    private function populatePivotAttributes(&$model, $viaModels, $attributes)
     {
         foreach($attributes as $attr)
         {
-            if(!in_array($attr, array_keys($viaModel))){
-                throw new Exception("Attribute '$attr' doesn't belong to junction table");
-            }
+            foreach($viaModels as $parentId => $viaModel)
+            {
+                if(!in_array($attr, array_keys($viaModel))){
+                    throw new Exception("Attribute '$attr' doesn't belong to junction table");
+                }
 
-            if(is_array($model)){
-                $model[$attr] = $viaModel[$attr];
-            }elseif($model instanceof ActiveRecord){
-                $model->setPivotAttribute($attr, $viaModel[$attr]);
-            }else{
-                throw new Exception("Model must be either array or instance of " . ActiveRecord::className());
+                if(is_array($model)){
+                    $model[$attr][$parentId] = $viaModel[$attr];
+                }elseif($model instanceof ActiveRecord){
+                    $model->setPivotAttribute($attr, $viaModel[$attr], $parentId);
+                }else{
+                    throw new Exception("Model must be either array or instance of " . ActiveRecord::className());
+                }
             }
         }
     }

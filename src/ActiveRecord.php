@@ -25,9 +25,14 @@ class ActiveRecord extends \yii\db\ActiveRecord
      * @param $name
      * @param $value
      */
-    public function setPivotAttribute($name, $value)
+    public function setPivotAttribute($name, $value, $parentId = null)
     {
-        $this->_pivotAttributes[$name] = $value;
+        if(isset($parentId)){
+            $this->_pivotAttributes[$name][$parentId] = $value;
+        }else{
+            $this->_pivotAttributes[$name] = $value;
+        }
+
     }
 
     public function __get($name)
