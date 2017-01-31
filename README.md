@@ -5,6 +5,7 @@ Extension overwrites \yii\db\ActiveQuery::viaTable() and  allows to pass there a
 which will be attached to child models as properties. 
 
 
+
 ## Requirements
 
 - Yii 2.0
@@ -132,7 +133,8 @@ works with 'array' models as well:
     }
 ```
 
-
+#### Show case page!
+You may find more code samples in [DEMO](http://ec2-35-157-96-249.eu-central-1.compute.amazonaws.com/) page. And some unit tests on [DEMO page repository]
 
 
 #### Note!
