@@ -134,7 +134,7 @@ works with 'array' models as well:
 ```
 
 #### Show case page!
-You may find more code samples in [DEMO](http://ec2-35-157-96-249.eu-central-1.compute.amazonaws.com/) page. And some unit tests on [DEMO page repository]
+You may find more code samples in [DEMO](http://ec2-35-157-96-249.eu-central-1.compute.amazonaws.com/) page. And some unit tests on [DEMO page repository](https://github.com/alexinator1/jta-demo-app)
 
 
 #### Note!
